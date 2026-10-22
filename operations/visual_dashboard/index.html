@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>NeoRome · Operations</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080b10; --panel: #0e131b; --panel-2: #111923; --line: #1d2935;
+      --text: #e8edf2; --muted: #8794a2; --faint: #5d6a78; --teal: #5fe0c1;
+      --blue: #86b9ff; --amber: #f2bd67; --red: #ff777e; --green: #72d6a4;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 82% -10%, #16323a 0, transparent 36%), var(--bg); color: var(--text); font: 14px/1.45 var(--sans); }
+    .shell { width: min(1480px, 100%); margin: 0 auto; padding: 28px clamp(16px, 3vw, 42px) 48px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .mark { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid #35675f; border-radius: 12px; color: var(--teal); font: 700 14px var(--mono); background: #10201f; box-shadow: 0 0 32px #49c6a31a; }
+    h1 { margin: 0; font-size: 17px; letter-spacing: .015em; font-weight: 650; }
+    .eyebrow { color: var(--muted); font: 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; }
+    .top-right { display: flex; align-items: center; gap: 12px; }
+    .paper-pill, .freshness { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #28483f; border-radius: 999px; padding: 7px 11px; color: #a7e6cd; background: #102019; font: 10px var(--mono); letter-spacing: .09em; text-transform: uppercase; white-space: nowrap; }
+    .freshness { border-color: var(--line); color: var(--muted); background: #0c1117; letter-spacing: 0; text-transform: none; }
+    .dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px currentColor; }
+    .dot.warn { background: var(--amber); }.dot.bad { background: var(--red); }.dot.dim { background: var(--faint); }
+    main { padding-top: 22px; }
+    .page-head { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 18px; }
+    h2 { margin: 4px 0 0; font-size: clamp(23px, 3vw, 32px); line-height: 1.12; letter-spacing: -.035em; font-weight: 620; }
+    .subhead { color: var(--muted); margin-top: 8px; }
+    .asof { color: var(--muted); font: 11px var(--mono); text-align: right; white-space: nowrap; }
+    .banner { display: flex; align-items: center; gap: 10px; padding: 11px 14px; margin-bottom: 18px; border: 1px solid #493b25; border-radius: 9px; background: #201a11; color: #e7c790; font-size: 12px; }
+    .banner[hidden] { display: none; }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .desk-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .card, .panel { border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, #111821, #0d1219 75%); box-shadow: 0 10px 36px #00000014; }
+    .card { min-height: 112px; padding: 15px 17px; }
+    .label { color: var(--muted); font-size: 11px; }
+    .value { margin-top: 13px; font: 600 clamp(20px, 2.3vw, 28px) var(--mono); letter-spacing: -.05em; }
+    .value.teal { color: var(--teal); }
+    .note { margin-top: 5px; color: var(--faint); font-size: 10px; }
+    .panel { padding: 17px; min-width: 0; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    h3 { margin: 0; font-size: 13px; font-weight: 620; letter-spacing: .01em; }
+    .section-meta { color: var(--faint); font: 10px var(--mono); text-align: right; }
+    .upper-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .8fr); gap: 14px; margin-bottom: 14px; }
+    .flow { display: grid; grid-template-columns: minmax(120px, .85fr) 34px minmax(0, 2.8fr); gap: 12px; align-items: stretch; }
+    .flow-root { display: flex; flex-direction: column; justify-content: center; }
+    .flow-lines { display: grid; grid-template-rows: repeat(4, 1fr); align-items: center; position: relative; }
+    .flow-lines::before { content: ""; position: absolute; left: 9px; top: 12.5%; bottom: 12.5%; width: 1px; background: #29463f; }
+    .flow-lines span { display: block; height: 1px; background: #29463f; position: relative; }
+    .flow-lines span::before { content: ""; position: absolute; width: 4px; height: 4px; left: 7px; top: -2px; border-radius: 50%; background: var(--teal); }
+    .desk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .node { position: relative; border: 1px solid #26323e; border-radius: 9px; background: #0d141b; padding: 11px 12px; min-width: 0; }
+    .node.root { border-color: #315b51; background: #10201e; min-height: 100%; }
+    .node.root .node-top { flex-wrap: wrap; }
+    .node.root .node-name { white-space: normal; overflow: visible; }
+    .node.root .node-status { margin-left: 0; }
+    .node.support { border-color: #263647; background: #0d151f; }
+    .node-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .node-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 600; }
+    .node-role { color: var(--muted); margin-top: 7px; font-size: 10px; }
+    .node-detail { color: var(--faint); margin-top: 4px; overflow-wrap: anywhere; font-size: 10px; }
+    .node-status { color: var(--teal); margin-left: auto; font: 9px var(--mono); text-align: right; }
+    .node-status.warn { color: var(--amber); }.node-status.bad { color: var(--red); }.node-status.dim { color: var(--faint); }
+    .support-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+    .component-details { margin-top: 10px; border-top: 1px solid #202c35; padding-top: 9px; }
+    .component-details summary { color: var(--muted); cursor: pointer; font-size: 10px; }
+    .component-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 9px; }
+    .desk-summary-card { min-width: 0; padding: 13px 14px; border: 1px solid var(--line); border-radius: 10px; background: #0e151d; }
+    .desk-summary-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 620; }
+    .desk-summary-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+    .desk-stat-label { color: var(--faint); font-size: 9px; }
+    .desk-stat-value { margin-top: 4px; font: 11px var(--mono); }
+    .flow-note { color: var(--faint); font-size: 10px; margin-top: 12px; }
+    .health-score { display: flex; align-items: baseline; gap: 7px; margin: 5px 0 14px; }
+    .health-number { font: 600 25px var(--mono); color: var(--teal); letter-spacing: -.06em; }
+    .health-copy { color: var(--muted); font-size: 11px; }
+    .health-list { display: grid; gap: 9px; }
+    .health-row { display: flex; justify-content: space-between; gap: 12px; padding-top: 9px; border-top: 1px solid #1b2630; font-size: 11px; }
+    .health-row span:first-child { color: var(--muted); }
+    .health-row span:last-child { font-family: var(--mono); text-align: right; }
+    .metric-list { display: grid; gap: 8px; margin-top: 13px; }
+    .metric-chip { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 10px; }
+    .metric-chip span:last-child { color: var(--text); font-family: var(--mono); text-align: right; overflow-wrap: anywhere; }
+    .lower-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 14px; margin-bottom: 14px; }
+    .filter { border: 1px solid #293541; border-radius: 7px; padding: 6px 26px 6px 9px; background: #0a1016; color: var(--text); font: 10px var(--sans); max-width: 180px; }
+    .account-table { min-width: 1050px; }
+    .options-paper-table { min-width: 1180px; }
+    .account-error { color: var(--amber); }
+    .table-wrap { overflow-x: auto; margin: 0 -3px; }
+    .trade-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+    .more-button { border: 1px solid #2b3b47; border-radius: 7px; padding: 7px 10px; background: #111b24; color: var(--text); font: 10px var(--sans); cursor: pointer; }
+    .more-button:hover { border-color: #49677a; background: #15222c; }
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+    th { text-align: left; color: var(--faint); padding: 9px 8px; border-bottom: 1px solid #25303a; font: 9px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    td { padding: 10px 8px; border-bottom: 1px solid #18212a; font-size: 10px; }
+    tr:last-child td { border-bottom: 0; }
+    td.mono { font-family: var(--mono); }
+    .side { display: inline-flex; align-items: center; padding: 3px 6px; border-radius: 4px; font: 9px var(--mono); text-transform: uppercase; }
+    .side.entry { color: var(--blue); background: #162333; }.side.exit { color: var(--teal); background: #14261f; }
+    .positive { color: var(--green); }.negative { color: var(--red); }
+    .empty { padding: 26px 12px; color: var(--faint); text-align: center; font-size: 11px; }
+    .position-list { display: grid; gap: 8px; }
+    .position { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(55px, .4fr) minmax(78px, .55fr) minmax(82px, .6fr) minmax(82px, .6fr); align-items: center; gap: 10px; padding: 11px 10px; border: 1px solid #1e2a34; border-radius: 8px; background: #0b1117; }
+    .pos-instrument { font-size: 11px; font-weight: 620; overflow-wrap: anywhere; }
+    .pos-meta { color: var(--faint); font-size: 9px; margin-top: 4px; overflow-wrap: anywhere; }
+    .pos-metric { text-align: right; font: 10px var(--mono); }
+    .pos-metric small { display: block; color: var(--faint); font: 9px var(--sans); margin-bottom: 4px; }
+    .pos-mark-time { display: block; color: var(--faint); font: 8px var(--mono); margin-bottom: 4px; }
+    .pos-mark-value { display: block; }
+    .positions-note { margin-top: 10px; color: var(--faint); font-size: 9px; }
+    .bottom-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 14px; }
+    .bottom-grid + .bottom-grid { margin-top: 14px; }
+    .incident-list, .action-list { display: grid; gap: 8px; }
+    .incident, .action { display: flex; align-items: flex-start; gap: 9px; border: 1px solid #222d37; border-radius: 8px; background: #0b1117; padding: 10px 11px; min-width: 0; }
+    .incident-text { min-width: 0; overflow-wrap: anywhere; font-size: 10px; }
+    .incident-key { display: block; color: var(--amber); font: 9px var(--mono); margin-bottom: 3px; }
+    .incident-time { display: block; color: var(--faint); font: 9px var(--mono); margin-top: 5px; }
+    .section-note { color: var(--muted); font-size: 10px; line-height: 1.6; margin: 0 0 12px; }
+    .history-toggle { color: var(--muted); cursor: pointer; font-size: 11px; padding: 4px 0 12px; }
+    .history-list .incident-key { color: var(--muted); }
+    .data-notes { color: var(--muted); font-size: 11px; line-height: 1.7; padding-left: 18px; margin: 0; }
+    .action { align-items: center; justify-content: space-between; gap: 12px; }
+    .action-name { overflow-wrap: anywhere; font-size: 10px; }
+    .action-status { color: var(--muted); font: 9px var(--mono); text-align: right; }
+    .coverage { color: var(--muted); font-size: 10px; margin-top: 12px; }
+    footer { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; color: var(--faint); font: 9px var(--mono); }
+    @media (max-width: 850px) { .upper-grid, .lower-grid, .bottom-grid { grid-template-columns: 1fr; } .flow { grid-template-columns: minmax(110px, .7fr) 26px minmax(0, 2fr); } .desk-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 600px) {
+      .shell { padding: 17px 13px 30px; } header { align-items: flex-start; } .top-right { flex-direction: column; align-items: flex-end; gap: 6px; }
+      .freshness { padding: 6px 8px; font-size: 9px; } .paper-pill { padding: 6px 8px; font-size: 9px; }
+      .page-head { align-items: flex-start; flex-direction: column; gap: 8px; } .asof { text-align: left; }
+      .kpis { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }.card { min-height: 100px; padding: 12px; }.value { margin-top: 10px; }
+      .flow { grid-template-columns: 1fr; gap: 8px; }.flow-lines { display: none; }.node.root { min-height: auto; }.desk-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-head { align-items: flex-start; }.section-meta { max-width: 46%; }.panel { padding: 13px; }
+      .position { grid-template-columns: minmax(0, 1fr) minmax(68px, .55fr); gap: 10px; }.position .pos-metric { text-align: left; }
+      .component-list { grid-template-columns: 1fr; }
+      footer { flex-direction: column; }
+    }
+    @media (max-width: 360px) { .desk-grid, .support-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="mark" aria-hidden="true">NR</div>
+        <div><div class="eyebrow">NeoRome · Firm operations</div><h1>Command center</h1></div>
+      </div>
+      <div class="top-right">
+        <span class="paper-pill"><i class="dot"></i> Paper only</span>
+        <span id="freshness" class="freshness"><i class="dot dim"></i><span>Connecting to snapshot…</span></span>
+      </div>
+    </header>
+    <main>
+      <div class="page-head">
+        <div><div class="eyebrow">Operational overview</div><h2>Firm at a glance</h2><div class="subhead">Desk activity, internal positions, and system health.</div></div>
+        <div id="asof" class="asof">Awaiting first snapshot</div>
+      </div>
+      <div id="stale-banner" class="banner" role="status" hidden><i class="dot warn"></i><span id="stale-copy">Snapshot is stale.</span></div>
+      <section class="kpis" aria-label="Firm summary">
+        <article class="card"><div class="label">Experiment realized P&amp;L</div><div id="kpi-pnl" class="value">Unknown</div><div class="note">Independent experiment aggregate · not portfolio return</div></article>
+        <article class="card"><div class="label">Open positions</div><div id="kpi-positions" class="value">Unknown</div><div id="kpi-positions-note" class="note">Across reported desk books</div></article>
+        <article class="card"><div class="label">Activity events in window</div><div id="kpi-trades" class="value">Unknown</div><div id="kpi-window" class="note">Window start unknown</div></article>
+        <article class="card"><div class="label">Operational components</div><div id="kpi-agents" class="value">Unknown</div><div id="kpi-agents-note" class="note">Reported status summary</div></article>
+      </section>
+      <section class="upper-grid">
+        <article class="panel">
+          <div class="section-head"><h3>Agent &amp; desk flow</h3><span class="section-meta">Operational roles · reported status</span></div>
+          <div class="flow">
+            <div id="oversight-node" class="flow-root"></div>
+            <div class="flow-lines" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <div>
+              <div id="desk-nodes" class="desk-grid"></div>
+              <div id="support-nodes" class="support-row"></div>
+              <details id="component-details" class="component-details" hidden>
+                <summary id="component-summary">Additional operational components</summary>
+                <div id="component-list" class="component-list"></div>
+              </details>
+            </div>
+          </div>
+          <div class="flow-note">Map describes operating components and their roles. Status does not indicate live LLM inference or independent trading authority.</div>
+        </article>
+        <article class="panel">
+          <div class="section-head"><h3>System health</h3><span id="health-state" class="section-meta">Waiting for data</span></div>
+          <div class="health-score"><span id="health-count" class="health-number">Unknown</span><span class="health-copy">reported desk books covered</span></div>
+          <div class="health-list">
+            <div class="health-row"><span>Snapshot mode</span><span id="health-mode">Unknown</span></div>
+            <div class="health-row"><span>Maintenance status</span><span id="health-maintenance">Unknown</span></div>
+            <div class="health-row"><span>Data snapshot</span><span id="health-data">Unknown</span></div>
+            <div class="health-row"><span>Reported errors</span><span id="health-errors">Unknown</span></div>
+          </div>
+          <div id="health-metrics" class="metric-list"></div>
+        </article>
+      </section>
+      <section id="desk-summary" class="desk-summary" aria-label="Per-desk experiment summaries"></section>
+      <section class="panel" style="margin-bottom:14px" aria-label="BTC paper account inventory">
+        <div class="section-head"><h3>BTC paper accounts</h3><select id="account-filter" class="filter" aria-label="Filter BTC accounts"><option value="all">All BTC accounts</option></select></div>
+        <p class="section-note">These are independent paper ledgers with their own starting balances and histories. Cash and results are per account; they are not pooled firm NAV. Settlement outcomes are shown separately from execution fills.</p>
+        <div class="table-wrap"><table class="account-table"><thead><tr><th>Account</th><th>Family</th><th>Coverage</th><th>Starting cash</th><th>Entries</th><th>Exit fills</th><th>Settlements</th><th>Realized today</th><th>Cash</th><th>Open cost</th><th>Mark</th><th>Mark time</th></tr></thead><tbody id="accounts-body"></tbody></table></div>
+        <div id="accounts-count" class="coverage"></div><div id="accounts-errors" class="coverage account-error"></div>
+        <div id="accounts-empty" class="empty" hidden>No BTC account identities were readable.</div>
+      </section>
+      <section class="panel" style="margin-bottom:14px" aria-label="Options paper account comparison">
+        <div class="section-head"><h3>Options paper accounts</h3><span id="options-paper-asof" class="section-meta">Waiting for data</span></div>
+        <p class="section-note">Seven independent paper books. Cash and realized results are reported per book and are not pooled firm NAV. Marks retain their last observed timestamps; missing or stale marks do not become fresh equity.</p>
+        <div class="table-wrap"><table class="options-paper-table"><thead><tr><th>Book</th><th>Signal</th><th>Exit</th><th>Filter</th><th>Coverage</th><th>Initial cash</th><th>Cash</th><th>Total realized</th><th>Realized today</th><th>Open positions</th><th>Open mark status</th></tr></thead><tbody id="options-paper-body"></tbody></table></div>
+        <div id="options-paper-coverage" class="coverage"></div><div id="options-paper-errors" class="coverage account-error"></div>
+        <div id="options-paper-empty" class="empty">Waiting for options paper account data.</div>
+      </section>
+      <section class="lower-grid">
+        <article class="panel">
+          <div class="section-head"><h3>Recent trades</h3><div><select id="desk-filter" class="filter" aria-label="Filter trades by desk"><option value="all">All desks</option></select> <select id="trade-account-filter" class="filter" aria-label="Filter trades by BTC account"><option value="all">All BTC accounts</option></select></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Time (ET)</th><th>Desk</th><th>Account</th><th>Strategy</th><th>Instrument</th><th>Side</th><th>Qty</th><th>Value</th><th>Realized P&amp;L</th></tr></thead><tbody id="trades-body"></tbody></table></div>
+          <p class="section-note">Exit P&amp;L is net proceeds less allocated basis; settlement rows show only the remaining cohort P&amp;L. Entry rows are N/A. Account realized today follows closed-cohort timing.</p>
+          <div class="trade-footer"><span id="trades-count" class="section-meta">Showing 0 of 0 trades</span><button id="trades-more" class="more-button" type="button" hidden>Show 30 more</button></div>
+          <div id="trades-empty" class="empty">Waiting for the first snapshot.</div>
+        </article>
+        <article class="panel">
+          <div class="section-head"><h3>Open positions</h3><span id="position-count" class="section-meta">Unknown</span></div>
+          <div id="positions" class="position-list"></div>
+          <div id="positions-empty" class="empty">Waiting for the first snapshot.</div>
+          <div class="positions-note">Mark age is shown where available. Null marks and P&amp;L stay unknown; basis is reported by each desk.</div>
+        </article>
+      </section>
+      <section class="bottom-grid">
+        <article class="panel">
+          <div class="section-head"><h3>Current issues</h3><span id="incident-count" class="section-meta">Unknown</span></div>
+          <p class="section-note">Current failures, recent failed attempts, stale data and uncertain evidence. The raw maintenance status is preserved; grouping does not resolve incidents.</p>
+          <div id="incidents" class="incident-list"></div>
+          <div id="incidents-empty" class="empty">Waiting for the first snapshot.</div>
+        </article>
+        <article class="panel">
+          <div class="section-head"><h3>Maintenance actions</h3><span id="maintenance-asof" class="section-meta">Unknown</span></div>
+          <div id="actions" class="action-list"></div>
+          <div id="actions-empty" class="empty">Waiting for the first snapshot.</div>
+        </article>
+      </section>
+      <section class="bottom-grid" aria-label="Historical failures and data notes">
+        <article class="panel">
+          <div class="section-head"><h3>Historical failures</h3><span id="historical-count" class="section-meta">Unknown</span></div>
+          <p id="historical-rule" class="section-note">Retained failed attempts are not marked resolved. Missing evidence stays under Current issues.</p>
+          <details id="historical-details">
+            <summary id="historical-summary" class="history-toggle">Show retained failed attempts</summary>
+            <div id="historical-incidents" class="incident-list history-list"></div>
+          </details>
+          <div id="historical-empty" class="empty">Waiting for the first snapshot.</div>
+        </article>
+        <article class="panel">
+          <div class="section-head"><h3>Data notes</h3><span id="data-notes-count" class="section-meta">Informational</span></div>
+          <p class="section-note">Coverage and interpretation caveats, separate from operational failures.</p>
+          <ul id="data-notes" class="data-notes"></ul>
+          <div id="coverage" class="coverage"></div>
+        </article>
+      </section>
+    </main>
+    <footer><span>NEOROME OPERATIONS · OBSERVATIONAL VIEW</span><span>Snapshot refresh · 15 sec</span></footer>
+  </div>
+  <script>
+    (() => {
+      'use strict';
+      const REFRESH_MS = 15000;
+      const $ = (id) => document.getElementById(id);
+      const appendText = (parent, tag, className, value) => {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        node.textContent = value == null || value === '' ? 'Unknown' : String(value);
+        parent.append(node);
+        return node;
+      };
+      const setText = (id, value) => { $(id).textContent = value == null || value === '' ? 'Unknown' : String(value); };
+      const safeArray = (value) => Array.isArray(value) ? value : [];
+      const money = (cents) => Number.isInteger(cents) ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', signDisplay: 'auto' }).format(cents / 100) : 'Unknown';
+      const dateET = (value) => {
+        if (!value) return 'Unknown';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Unknown';
+        return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short' }).format(date);
+      };
+      const ageSeconds = (value) => {
+        const time = value ? new Date(value).getTime() : NaN;
+        return Number.isFinite(time) ? Math.max(0, Math.floor((Date.now() - time) / 1000)) : null;
+      };
+      const ago = (value) => {
+        const seconds = ageSeconds(value);
+        if (seconds == null) return 'age unknown';
+        if (seconds < 60) return `${seconds}s ago`;
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+        return `${Math.floor(seconds / 86400)}d ago`;
+      };
+      const statusTone = (status) => {
+        const s = String(status || '').toLowerCase();
+        if (/error|fail|blocked|critical|down/.test(s)) return 'bad';
+        if (/warn|stale|degraded|pending|unknown|attention/.test(s)) return 'warn';
+        if (!s || s === 'unknown' || s === 'not reported') return 'dim';
+        return 'good';
+      };
+      const agentMatch = (agents, patterns) => agents.find((agent) => patterns.some((pattern) => pattern.test(`${agent.id || ''} ${agent.name || ''} ${agent.role || ''}`)));
+      const deskAliases = (id) => id === 'prediction' || id === 'prediction-markets' ? ['prediction', 'prediction-markets'] : [id];
+      const matchesDesk = (left, right) => deskAliases(left).some((id) => deskAliases(right).includes(id));
+      const agentCard = (host, agent, title, fallback, root = false) => {
+        host.replaceChildren();
+        const card = document.createElement('div');
+        card.className = `node${root ? ' root' : ''}`;
+        const top = document.createElement('div'); top.className = 'node-top';
+        const dot = document.createElement('i'); dot.className = `dot ${statusTone(agent && agent.status) || 'dim'}`; top.append(dot);
+        appendText(top, 'span', 'node-name', agent && agent.name || title);
+        appendText(top, 'span', `node-status ${statusTone(agent && agent.status) || 'dim'}`, agent && agent.status || 'No status reported');
+        card.append(top);
+        appendText(card, 'div', 'node-role', agent && agent.role || fallback);
+        if (agent && (agent.detail || agent.as_of)) appendText(card, 'div', 'node-detail', agent.detail || `As of ${dateET(agent.as_of)}`);
+        host.append(card);
+      };
+      let snapshot = null;
+      let selectedDesk = 'all';
+      let selectedAccount = 'all';
+      let selectedTradeAccount = 'all';
+      let tradeLimit = 30;
+      let optionsPaper = null;
+      let optionsPaperFetchError = null;
+      let optionsPaperRefreshInFlight = false;
+      function incidentGroups() {
+        const grouped = snapshot && snapshot.incident_groups;
+        if (grouped && Array.isArray(grouped.current) && Array.isArray(grouped.historical)) return grouped;
+        // An old or incomplete server must not silently hide unresolved issues.
+        const current = safeArray(snapshot.maintenance && snapshot.maintenance.issues).map((issue) =>
+          issue && typeof issue === 'object' ? issue : { key: 'maintenance:issue', reason: 'incident_record_invalid' });
+        safeArray(snapshot.errors).forEach((error, index) => current.push({ key: `snapshot-error-${index + 1}`, reason: error }));
+        return { current, historical: [], historical_rule: 'Classification evidence unavailable; all reported issues remain current.' };
+      }
+      let refreshInFlight = false;
+      let lastFetchError = null;
+      const desks = () => safeArray(snapshot && snapshot.desks);
+      const deskName = (id) => desks().find((desk) => matchesDesk(desk.id, id))?.name || (id === 'prediction' ? 'Prediction markets' : id) || 'Unknown';
+      const btcAccounts = () => safeArray(snapshot && snapshot.prediction_accounts);
+      const filteredTrades = () => safeArray(snapshot && snapshot.trades).filter((trade) => (selectedDesk === 'all' || matchesDesk(trade.desk, selectedDesk)) && (selectedTradeAccount === 'all' || trade.account_id === selectedTradeAccount)).slice().sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+
+      function renderAgents() {
+        const agents = safeArray(snapshot.agents);
+        const usedAgents = new Set();
+        const takeAgent = (patterns) => {
+          const agent = agentMatch(agents.filter((candidate) => !usedAgents.has(candidate)), patterns);
+          if (agent) usedAgents.add(agent);
+          return agent;
+        };
+        const oversight = takeAgent([/oversight/i, /firm.?lead/i, /orchestrat/i]);
+        agentCard($('oversight-node'), oversight, 'Firm oversight', 'Shared architecture, integration & risk coordination', true);
+        const deskHost = $('desk-nodes'); deskHost.replaceChildren();
+        const keys = [
+          { id: 'equities', ids: [/equities/i], pattern: /equit|stock/i }, { id: 'options', ids: [/options/i], pattern: /option|derivative/i },
+          { id: 'prediction-markets', ids: [/prediction.?markets?/i, /^prediction$/i], pattern: /prediction|kalshi|polymarket/i }, { id: 'crypto', ids: [/crypto/i], pattern: /crypto|digital.?asset/i }
+        ];
+        keys.forEach((key) => {
+          const desk = desks().find((item) => matchesDesk(item.id, key.id)) || { id: key.id, name: key.id === 'prediction-markets' ? 'Prediction markets' : key.id[0].toUpperCase() + key.id.slice(1) };
+          const agent = takeAgent([...key.ids, key.pattern]);
+          const host = document.createElement('div');
+          agentCard(host, agent, desk.name, `Desk · ${desk.name}`);
+          deskHost.append(host.firstElementChild);
+        });
+        const support = $('support-nodes'); support.replaceChildren();
+        const featuredSupport = [
+          { patterns: [/maintenance-ai\b/i, /maintenance diagnosis/i], title: 'Maintenance AI diagnostics', role: 'AI-assisted diagnostic component' },
+          { patterns: [/maintenance observer/i, /deterministic.*observer/i], title: 'Deterministic observer', role: 'Rule-based operational observation' },
+          { patterns: [/data and execution runtime/i], title: 'Data support', role: 'Collectors and deterministic runtime' }
+        ];
+        featuredSupport.forEach((item) => {
+          const agent = takeAgent(item.patterns);
+          if (!agent) return;
+          const host = document.createElement('div');
+          agentCard(host, agent, item.title, item.role);
+          host.firstElementChild.classList.add('support'); support.append(host.firstElementChild);
+        });
+        const extras = agents.filter((agent) => !usedAgents.has(agent));
+        const componentDetails = $('component-details');
+        const componentList = $('component-list'); componentList.replaceChildren();
+        componentDetails.hidden = extras.length === 0;
+        $('component-summary').textContent = `Additional operational components · ${extras.length}`;
+        extras.forEach((agent) => {
+          const host = document.createElement('div');
+          agentCard(host, agent, agent.name || agent.id || 'Operational component', agent.role || 'Supporting service component');
+          host.firstElementChild.classList.add('support'); componentList.append(host.firstElementChild);
+        });
+        const known = agents.filter((agent) => agent && agent.status && !/unknown/i.test(agent.status)).length;
+        const errors = safeArray(snapshot.errors).length;
+        setText('kpi-agents', `${known}/${agents.length}`);
+        setText('kpi-agents-note', `${errors} reported error${errors === 1 ? '' : 's'}`);
+      }
+
+      function renderHealth() {
+        const maintenance = snapshot.maintenance || {};
+        const coverage = snapshot.coverage || {};
+        const groups = incidentGroups();
+        const issues = groups.current;
+        const errors = safeArray(snapshot.errors);
+        setText('health-count', Number.isInteger(coverage.books) ? String(coverage.books) : 'Unknown');
+        setText('health-mode', snapshot.mode === 'paper_only' ? 'Paper only' : snapshot.mode || 'Unknown');
+        setText('health-maintenance', `${maintenance.status || 'Unknown'} (raw observer)`);
+        setText('health-data', dateET(snapshot.as_of));
+        setText('health-errors', String(errors.length));
+        setText('health-state', `${issues.length} current · ${groups.historical.length} historical`);
+        setText('incident-count', `${issues.length} current`);
+        setText('historical-count', `${groups.historical.length} retained`);
+        const metricsHost = $('health-metrics'); metricsHost.replaceChildren();
+        const metrics = maintenance.metrics && typeof maintenance.metrics === 'object' ? Object.entries(maintenance.metrics) : [];
+        metrics.slice(0, 8).forEach(([key, value]) => {
+          const row = document.createElement('div'); row.className = 'metric-chip';
+          appendText(row, 'span', '', key.replace(/[_-]+/g, ' '));
+          const formatted = typeof value === 'number' && key.endsWith('_bytes') ? `${(value / 1073741824).toFixed(2)} GiB` : typeof value === 'number' && key.endsWith('_percent') ? `${value}%` : value;
+          appendText(row, 'span', '', formatted == null || typeof formatted === 'object' ? 'Unknown' : formatted);
+          metricsHost.append(row);
+        });
+      }
+
+      function renderKpis() {
+        const totalPnl = desks().reduce((sum, desk) => sum + desk.realized_pnl_cents, 0);
+        const pnlKnown = desks().length > 0 && desks().every((desk) => Number.isInteger(desk.realized_pnl_cents));
+        const positionCountKnown = desks().length > 0 && desks().every((desk) => Number.isInteger(desk.open_positions));
+        const positionCount = desks().reduce((sum, desk) => sum + (Number.isInteger(desk.open_positions) ? desk.open_positions : 0), 0);
+        const trades = safeArray(snapshot.trades);
+        setText('kpi-pnl', pnlKnown ? money(totalPnl) : 'Unknown');
+        $('kpi-pnl').classList.toggle('teal', pnlKnown && totalPnl >= 0);
+        $('kpi-pnl').classList.toggle('negative', pnlKnown && totalPnl < 0);
+        setText('kpi-positions', positionCountKnown ? String(positionCount) : 'Unknown');
+        setText('kpi-positions-note', `${safeArray(snapshot.positions).length} position records reported`);
+        setText('kpi-trades', String(trades.length));
+        setText('kpi-window', snapshot.window_start ? `Since ${dateET(snapshot.window_start)} · includes settlement outcomes` : 'Window start unknown');
+        setText('asof', `Snapshot as of ${dateET(snapshot.as_of)}`);
+      }
+
+      function renderDeskSummary() {
+        const host = $('desk-summary'); host.replaceChildren();
+        desks().forEach((desk) => {
+          const card = document.createElement('article'); card.className = 'desk-summary-card';
+          appendText(card, 'div', 'desk-summary-title', desk.name || desk.id);
+          const stats = document.createElement('div'); stats.className = 'desk-summary-stats';
+          [['Entries', desk.entries], ['Exit fills', desk.exits], ['Settlements', desk.settlements], ['Realized P&L', money(desk.realized_pnl_cents)]].forEach(([label, value]) => {
+            const metric = document.createElement('div');
+            appendText(metric, 'div', 'desk-stat-label', label);
+            const result = appendText(metric, 'div', 'desk-stat-value', value);
+            if (label === 'Realized P&L' && Number.isInteger(desk.realized_pnl_cents) && desk.realized_pnl_cents !== 0) result.classList.add(desk.realized_pnl_cents > 0 ? 'positive' : 'negative');
+            stats.append(metric);
+          });
+          card.append(stats); host.append(card);
+        });
+      }
+
+      function renderDeskFilter() {
+        const select = $('desk-filter');
+        const current = selectedDesk;
+        select.replaceChildren();
+        const all = document.createElement('option'); all.value = 'all'; all.textContent = 'All desks'; select.append(all);
+        desks().forEach((desk) => { const option = document.createElement('option'); option.value = desk.id; option.textContent = desk.name || desk.id; select.append(option); });
+        selectedDesk = current === 'all' ? 'all' : desks().find((desk) => matchesDesk(desk.id, current))?.id || 'all';
+        select.value = selectedDesk;
+      }
+
+      function accountLabel(account) { return account.name || account.id || 'Unknown account'; }
+      function renderAccountFilters() {
+        for (const id of ['account-filter','trade-account-filter']) {
+          const select = $(id), current = id === 'account-filter' ? selectedAccount : selectedTradeAccount;
+          select.replaceChildren();
+          const all = document.createElement('option'); all.value='all'; all.textContent='All BTC accounts'; select.append(all);
+          btcAccounts().forEach((account) => { const option=document.createElement('option'); option.value=account.id; option.textContent=accountLabel(account); select.append(option); });
+          const valid = current === 'all' || btcAccounts().some((account) => account.id === current);
+          if (id === 'account-filter') { selectedAccount = valid ? current : 'all'; select.value=selectedAccount; }
+          else { selectedTradeAccount = valid ? current : 'all'; select.value=selectedTradeAccount; }
+        }
+      }
+
+      function renderAccounts() {
+        const body=$('accounts-body'); body.replaceChildren();
+        const accounts=btcAccounts().filter((account) => selectedAccount === 'all' || account.id === selectedAccount);
+        accounts.forEach((account) => {
+          const row=document.createElement('tr');
+          appendText(row,'td','',accountLabel(account)); appendText(row,'td','',account.family);
+          appendText(row,'td','',account.coverage_status === 'ok' ? 'Covered' : account.coverage_status || 'Unknown');
+          appendText(row,'td','mono',money(account.initial_cash_cents));
+          appendText(row,'td','mono',account.entries); appendText(row,'td','mono',account.exits);
+          appendText(row,'td','mono',account.settlements); appendText(row,'td','mono',money(account.realized_pnl_today_cents));
+          appendText(row,'td','mono',money(account.cash_cents)); appendText(row,'td','mono',money(account.open_cost_cents));
+          const flat = account.open_positions === 0;
+          appendText(row,'td','mono',flat ? 'N/A' : money(account.mark_cents));
+          const freshness=account.mark_fresh === true ? ' · fresh' : account.mark_fresh === false ? ' · stale' : ' · freshness unknown';
+          appendText(row,'td','mono',flat ? 'N/A' : account.mark_at ? `${dateET(account.mark_at)}${freshness}` : 'Unknown');
+          body.append(row);
+        });
+        const coverage=snapshot.prediction_account_coverage || {};
+        const observed=Number.isInteger(coverage.observed) ? coverage.observed : accounts.length;
+        const expected=Number.isInteger(coverage.expected) ? coverage.expected : 'unknown';
+        setText('accounts-count',`Showing ${accounts.length} accounts · ${observed} of ${expected} expected identities read${coverage.complete ? ' · complete' : ' · coverage incomplete'}`);
+        $('accounts-empty').hidden=accounts.length>0;
+        const errors=safeArray(coverage.errors);
+        $('accounts-errors').textContent=errors.join(' · ');
+      }
+
+      function renderOptionsPaper() {
+        const body=$('options-paper-body'); body.replaceChildren();
+        const payload=optionsPaper && typeof optionsPaper === 'object' ? optionsPaper : {};
+        const accounts=safeArray(payload.accounts);
+        accounts.forEach((account) => {
+          const row=document.createElement('tr');
+          appendText(row,'td','',account.title || account.book_key || 'Unknown book');
+          appendText(row,'td','',account.signal); appendText(row,'td','',account.exit_policy); appendText(row,'td','',account.filter);
+          appendText(row,'td','',account.source_status || 'unknown');
+          appendText(row,'td','mono',money(account.initial_cash_cents)); appendText(row,'td','mono',money(account.cash_cents));
+          appendText(row,'td','mono',money(account.total_realized_pnl_cents)); appendText(row,'td','mono',money(account.today_realized_pnl_cents));
+          appendText(row,'td','mono',Number.isInteger(account.open_positions) ? account.open_positions : 'Unknown');
+          const positions=safeArray(account.positions);
+          let markStatus=account.source_status === 'ok' ? 'No open marks' : 'Unavailable';
+          if (account.source_status === 'ok' && positions.length) {
+            if (positions.some((position) => position.mark_fresh === false)) markStatus='Last observed · stale';
+            else if (positions.some((position) => position.mark_fresh !== true)) markStatus='Last observed · freshness unknown';
+            else markStatus='Recent observation';
+            const observed=positions.map((position) => position.last_observed_at).filter(Boolean).sort().pop();
+            if (observed) markStatus += ` · ${dateET(observed)}`;
+          }
+          appendText(row,'td','',markStatus); body.append(row);
+        });
+        const coverage=payload.coverage || {};
+        const observed=Number.isInteger(coverage.observed) ? coverage.observed : accounts.filter((account) => account.source_status === 'ok').length;
+        const expected=Number.isInteger(coverage.expected) ? coverage.expected : 7;
+        $('options-paper-coverage').textContent=`Showing ${accounts.length} registered books · ${observed} of ${expected} sources available${coverage.complete ? ' · complete' : ' · coverage incomplete'}`;
+        $('options-paper-errors').textContent=[...safeArray(payload.errors), ...(optionsPaperFetchError ? [optionsPaperFetchError] : [])].join(' · ');
+        $('options-paper-empty').hidden=accounts.length>0;
+        setText('options-paper-asof',payload.as_of ? `As of ${dateET(payload.as_of)}` : 'As of unknown time');
+      }
+
+      function renderTrades() {
+        const body = $('trades-body'); body.replaceChildren();
+        const trades = filteredTrades();
+        trades.slice(0, tradeLimit).forEach((trade) => {
+          const row = document.createElement('tr');
+          appendText(row, 'td', 'mono', dateET(trade.at)); appendText(row, 'td', '', deskName(trade.desk)); appendText(row,'td','',trade.account_name || trade.account_id || '—');
+          appendText(row, 'td', '', trade.strategy); appendText(row, 'td', '', trade.instrument); const side = document.createElement('td');
+          const badge = document.createElement('span'); badge.className = `side ${trade.side === 'entry' ? 'entry' : trade.side === 'exit' ? 'exit' : ''}`; badge.textContent = trade.side || 'Unknown'; side.append(badge); row.append(side);
+          appendText(row, 'td', 'mono', trade.quantity); appendText(row, 'td', 'mono', money(trade.value_cents));
+          const pnl = document.createElement('td'); pnl.className = `mono ${Number.isInteger(trade.pnl_cents) ? trade.pnl_cents > 0 ? 'positive' : trade.pnl_cents < 0 ? 'negative' : '' : ''}`;
+          pnl.textContent = trade.pnl_status === 'not_applicable' || trade.side === 'entry' ? 'N/A' : money(trade.pnl_cents);
+          if (trade.pnl_reason) pnl.title = trade.pnl_reason;
+          row.append(pnl);
+          body.append(row);
+        });
+        const showing = Math.min(trades.length, tradeLimit);
+        setText('trades-count', `Showing ${showing} of ${trades.length} trades`);
+        $('trades-more').hidden = showing >= trades.length;
+        $('trades-more').textContent = `Show ${Math.min(30, trades.length - showing)} more`;
+        $('trades-empty').hidden = trades.length > 0;
+        $('trades-empty').textContent = snapshot.trades.length ? 'No trades match these filters.' : 'No trades reported in this window.';
+      }
+
+      function renderPositions() {
+        const host = $('positions'); host.replaceChildren();
+        const items = safeArray(snapshot.positions);
+        items.forEach((position) => {
+          const row = document.createElement('div'); row.className = 'position';
+          const identity = document.createElement('div'); appendText(identity, 'div', 'pos-instrument', position.instrument);
+          appendText(identity, 'div', 'pos-meta', `${deskName(position.desk)} · ${position.strategy || 'Strategy unknown'}`); row.append(identity);
+          const quantity = document.createElement('div'); quantity.className = 'pos-metric'; appendText(quantity, 'small', '', 'Quantity'); quantity.append(document.createTextNode(position.quantity == null ? 'Unknown' : String(position.quantity))); row.append(quantity);
+          const basis = document.createElement('div'); basis.className = 'pos-metric'; appendText(basis, 'small', '', 'Basis'); basis.append(document.createTextNode(money(position.basis_cents))); row.append(basis);
+          const mark = document.createElement('div'); mark.className = `pos-metric ${Number.isInteger(position.pnl_cents) ? position.pnl_cents > 0 ? 'positive' : position.pnl_cents < 0 ? 'negative' : '' : ''}`;
+          mark.title = position.mark_at == null ? 'Exact mark timestamp unavailable' : `Exact mark timestamp: ${String(position.mark_at)}`;
+          appendText(mark, 'small', '', `Last observed · ${ago(position.mark_at)}`);
+          appendText(mark, 'span', 'pos-mark-time', dateET(position.mark_at));
+          appendText(mark, 'span', 'pos-mark-value', money(position.mark_cents)); row.append(mark);
+          const pnl = document.createElement('div'); pnl.className = `pos-metric ${Number.isInteger(position.pnl_cents) ? position.pnl_cents > 0 ? 'positive' : position.pnl_cents < 0 ? 'negative' : '' : ''}`;
+          appendText(pnl, 'small', '', 'Unrealized P&L'); pnl.append(document.createTextNode(money(position.pnl_cents))); row.append(pnl);
+          host.append(row);
+        });
+        setText('position-count', `${items.length} reported`);
+        $('positions-empty').hidden = items.length > 0;
+        $('positions-empty').textContent = 'No open positions reported.';
+      }
+
+      function renderIncidentsAndActions() {
+        const groups = incidentGroups();
+        const labels = { unit_failed: 'Service or job reported a failure', status_unhealthy: 'Source reports unhealthy',
+          status_file_stale: 'Report file is overdue', status_stale: 'Status update is overdue',
+          incident_list_unavailable: 'Incident list is unavailable', incident_record_invalid: 'Incident evidence could not be read' };
+        function renderIssues(host, issues, historical = false) {
+          host.replaceChildren();
+          issues.forEach((issue) => {
+            const row = document.createElement('div'); row.className = 'incident';
+            const dot = document.createElement('i'); dot.className = `dot ${historical ? 'dim' : 'warn'}`; row.append(dot);
+            const content = document.createElement('div'); content.className = 'incident-text';
+            appendText(content, 'span', 'incident-key', issue.key);
+            appendText(content, 'span', '', labels[issue.reason] || issue.reason);
+            if (issue.last_exit_at) appendText(content, 'span', 'incident-time', `Last exit: ${dateET(issue.last_exit_at)} · ${ago(issue.last_exit_at)}`);
+            row.append(content); host.append(row);
+          });
+        }
+        renderIssues($('incidents'), groups.current);
+        renderIssues($('historical-incidents'), groups.historical, true);
+        $('incidents-empty').hidden = groups.current.length > 0;
+        $('incidents-empty').textContent = 'No current issues reported. Historical failures remain available below.';
+        $('historical-empty').hidden = groups.historical.length > 0;
+        $('historical-empty').textContent = 'No historical failures classified in this snapshot.';
+        $('historical-details').hidden = groups.historical.length === 0;
+        setText('historical-summary', `Show ${groups.historical.length} retained failed attempts`);
+        setText('historical-rule', groups.historical_rule);
+        const coverage = snapshot.coverage || {}; const notes = safeArray(coverage.notes);
+        $('data-notes').replaceChildren();
+        notes.forEach((note) => appendText($('data-notes'), 'li', '', note));
+        setText('data-notes-count', `${notes.length} informational`);
+        $('coverage').replaceChildren();
+        if (Number.isInteger(coverage.books)) appendText($('coverage'), 'span', '', `${coverage.books} books covered`);
+        const actionHost = $('actions'); actionHost.replaceChildren();
+        const actions = safeArray(snapshot.maintenance && snapshot.maintenance.actions);
+        actions.forEach((action) => {
+          const row = document.createElement('div'); row.className = 'action'; appendText(row, 'span', 'action-name', action.unit);
+          appendText(row, 'span', `action-status ${statusTone(action.status)}`, action.status); actionHost.append(row);
+        });
+        $('actions-empty').hidden = actions.length > 0;
+        $('actions-empty').textContent = 'No maintenance actions reported.';
+        setText('maintenance-asof', snapshot.maintenance && snapshot.maintenance.as_of ? `As of ${dateET(snapshot.maintenance.as_of)}` : 'As of unknown time');
+      }
+
+      function render() {
+        renderAgents(); renderHealth(); renderKpis(); renderDeskSummary(); renderDeskFilter(); renderAccountFilters(); renderAccounts(); renderOptionsPaper(); renderTrades(); renderPositions(); renderIncidentsAndActions();
+      }
+
+      async function refreshOptionsPaper() {
+        if (optionsPaperRefreshInFlight) return;
+        optionsPaperRefreshInFlight = true;
+        try {
+          const response=await fetch('/api/options-paper',{cache:'no-store',headers:{Accept:'application/json'}});
+          if (!response.ok) throw new Error(`Options paper request returned ${response.status}`);
+          const data=await response.json();
+          if (!data || typeof data !== 'object' || !Array.isArray(data.accounts) || !data.coverage) throw new Error('Options paper payload has an unexpected shape');
+          optionsPaper=data; optionsPaperFetchError=null;
+        } catch (error) {
+          optionsPaperFetchError=error instanceof Error ? error.message : 'Options paper data unavailable';
+        } finally {
+          optionsPaperRefreshInFlight = false;
+        }
+        renderOptionsPaper();
+      }
+
+      function setFreshness(label, tone) {
+        const host = $('freshness'); host.replaceChildren();
+        const dot = document.createElement('i'); dot.className = `dot ${tone}`; host.append(dot);
+        appendText(host, 'span', '', label);
+      }
+
+      function updateSnapshotFreshness(fetchError = null) {
+        if (!snapshot) {
+          setFreshness('Snapshot unavailable', 'warn');
+          $('stale-banner').hidden = false;
+          $('stale-copy').textContent = fetchError ? `Could not load operational data: ${fetchError}. No sample data is shown.` : 'No operational snapshot is available.';
+          return;
+        }
+        const seconds = ageSeconds(snapshot.as_of);
+        if (fetchError) {
+          setFreshness('Stale · serving last snapshot', 'warn');
+          $('stale-banner').hidden = false;
+          $('stale-copy').textContent = `Could not refresh: ${fetchError}. Showing snapshot from ${dateET(snapshot.as_of)}.`;
+          return;
+        }
+        if (seconds == null) {
+          setFreshness('Snapshot age unknown', 'warn');
+          $('stale-banner').hidden = false;
+          $('stale-copy').textContent = 'Snapshot timestamp is unavailable, so freshness cannot be confirmed.';
+          return;
+        }
+        if (seconds > 45) {
+          setFreshness(`Stale · snapshot age ${ago(snapshot.as_of)}`, 'warn');
+          $('stale-banner').hidden = false;
+          $('stale-copy').textContent = `Snapshot timestamp is older than 45 seconds. Last snapshot: ${dateET(snapshot.as_of)}.`;
+          return;
+        }
+        setFreshness(`Snapshot current · ${ago(snapshot.as_of)}`, '');
+        $('stale-banner').hidden = true;
+      }
+
+      async function refresh() {
+        if (refreshInFlight) return;
+        refreshInFlight = true;
+        refreshOptionsPaper();
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 10000);
+        try {
+          const response = await fetch('/api/snapshot', { cache: 'no-store', headers: { Accept: 'application/json' }, signal: controller.signal });
+          if (!response.ok) throw new Error(`Snapshot request returned ${response.status}`);
+          const data = await response.json();
+          if (!data || typeof data !== 'object' || !Array.isArray(data.desks) || !Array.isArray(data.trades) || !Array.isArray(data.agents) || !Array.isArray(data.positions) || !Array.isArray(data.errors) || !data.maintenance || typeof data.maintenance !== 'object' || !data.coverage || typeof data.coverage !== 'object') throw new Error('Snapshot payload has an unexpected shape');
+          snapshot = data;
+          lastFetchError = null;
+          render();
+          updateSnapshotFreshness();
+        } catch (error) {
+          const reason = error && error.name === 'AbortError' ? 'Snapshot request timed out after 10 seconds' : error instanceof Error ? error.message : 'Snapshot unavailable';
+          lastFetchError = reason;
+          updateSnapshotFreshness(reason);
+          if (!snapshot) setText('asof', 'No snapshot available');
+        } finally {
+          window.clearTimeout(timeout);
+          refreshInFlight = false;
+        }
+      }
+
+      $('desk-filter').addEventListener('change', (event) => { selectedDesk = event.target.value; tradeLimit = 30; renderTrades(); });
+      $('account-filter').addEventListener('change', (event) => { selectedAccount=event.target.value; renderAccounts(); });
+      $('trade-account-filter').addEventListener('change', (event) => { selectedTradeAccount=event.target.value; tradeLimit=30; renderTrades(); });
+      $('trades-more').addEventListener('click', () => { tradeLimit += 30; renderTrades(); });
+      refresh();
+      window.setInterval(refresh, REFRESH_MS);
+      window.setInterval(() => {
+        if (snapshot) updateSnapshotFreshness(lastFetchError);
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>

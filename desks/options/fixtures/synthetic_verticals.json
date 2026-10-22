@@ -1,0 +1,41 @@
+{
+  "fixture_type": "synthetic",
+  "description": "Synthetic offline quotes for deterministic expiration payoff checks; not market data.",
+  "as_of": "2026-01-05T15:00:00Z",
+  "max_quote_age_seconds": 300,
+  "controls": {"max_loss_budget": "1000", "max_quantity": 1, "existing_reserved_risk": "0", "fee_per_contract": "0", "slippage_per_contract": "0"},
+  "cases": [
+    {
+      "name": "bull_call_debit",
+      "spot": "152",
+      "legs": [
+        {"symbol": "AAPL  260116C00150000", "underlying": "AAPL", "right": "C", "expiry": "2026-01-16", "strike": "150", "side": "buy", "quantity": 1, "multiplier": 100, "adjusted": false, "bid": "3.00", "ask": "3.20", "timestamp": "2026-01-05T14:59:00Z"},
+        {"symbol": "AAPL  260116C00155000", "underlying": "AAPL", "right": "C", "expiry": "2026-01-16", "strike": "155", "side": "sell", "quantity": 1, "multiplier": 100, "adjusted": false, "bid": "1.70", "ask": "1.90", "timestamp": "2026-01-05T14:59:00Z"}
+      ]
+    },
+    {
+      "name": "bear_call_credit",
+      "spot": "152",
+      "legs": [
+        {"symbol": "AAPL  260116C00155000", "underlying": "AAPL", "right": "C", "expiry": "2026-01-16", "strike": "155", "side": "buy", "quantity": 1, "multiplier": 100, "adjusted": false, "bid": "1.20", "ask": "1.40", "timestamp": "2026-01-05T14:59:00Z"},
+        {"symbol": "AAPL  260116C00150000", "underlying": "AAPL", "right": "C", "expiry": "2026-01-16", "strike": "150", "side": "sell", "quantity": 1, "multiplier": 100, "adjusted": false, "bid": "3.10", "ask": "3.30", "timestamp": "2026-01-05T14:59:00Z"}
+      ]
+    },
+    {
+      "name": "bull_put_credit",
+      "spot": "152",
+      "legs": [
+        {"symbol": "AAPL  260116P00150000", "underlying": "AAPL", "right": "P", "expiry": "2026-01-16", "strike": "150", "side": "buy", "quantity": 1, "multiplier": 100, "adjusted": false, "bid": "1.30", "ask": "1.50", "timestamp": "2026-01-05T14:59:00Z"},
+        {"symbol": "AAPL  260116P00155000", "underlying": "AAPL", "right": "P", "expiry": "2026-01-16", "strike": "155", "side": "sell", "quantity": 1, "multiplier": 100, "adjusted": false, "bid": "3.20", "ask": "3.40", "timestamp": "2026-01-05T14:59:00Z"}
+      ]
+    },
+    {
+      "name": "bear_put_debit",
+      "spot": "152",
+      "legs": [
+        {"symbol": "AAPL  260116P00155000", "underlying": "AAPL", "right": "P", "expiry": "2026-01-16", "strike": "155", "side": "buy", "quantity": 1, "multiplier": 100, "adjusted": false, "bid": "3.00", "ask": "3.20", "timestamp": "2026-01-05T14:59:00Z"},
+        {"symbol": "AAPL  260116P00150000", "underlying": "AAPL", "right": "P", "expiry": "2026-01-16", "strike": "150", "side": "sell", "quantity": 1, "multiplier": 100, "adjusted": false, "bid": "1.70", "ask": "1.90", "timestamp": "2026-01-05T14:59:00Z"}
+      ]
+    }
+  ]
+}

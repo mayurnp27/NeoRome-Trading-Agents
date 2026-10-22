@@ -1,0 +1,13 @@
+{
+  "provider": "databento",
+  "dataset": "OPRA.PILLAR",
+  "schema": "cbbo-1m",
+  "stype_in": "raw_symbol",
+  "api_key_env": "DATABENTO_API_KEY",
+  "max_records": 250000,
+  "notes": [
+    "Use dated OCC symbols from the archived OPRA definition response.",
+    "Use cmbp-1 only when event-level book replay is required; cbbo-1m is the bounded default.",
+    "Provide delta from a separately archived deterministic enrichment; Databento OPRA quotes do not contain Greeks."
+  ]
+}

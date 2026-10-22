@@ -1,0 +1,10 @@
+{
+  "asset_class": "crypto",
+  "symbol": "BTC/USD",
+  "qty": "0.0001",
+  "side": "buy",
+  "type": "limit",
+  "time_in_force": "gtc",
+  "limit_price": "1.00",
+  "client_order_id": "crypto-example-preview-001"
+}

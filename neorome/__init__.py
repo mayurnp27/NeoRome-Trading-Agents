@@ -1,0 +1,1 @@
+"""NeoRome shared trading interfaces."""

@@ -1,0 +1,3 @@
+# Official Databento Python client for historical OPRA access.
+# Pin the reviewed major/minor line; update only after adapter tests and API review.
+databento==0.87.0

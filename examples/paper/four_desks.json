@@ -1,0 +1,13 @@
+{
+  "source_kind": "synthetic",
+  "as_of": "2026-09-17T12:00:00Z",
+  "description": "Software rehearsal only. Every price, signal, check and exit below is constructed, not observed.",
+  "cases": [
+    {"id":"equity-fixture","desk":"equities","instrument":"SYNTH-EQUITY","group":"synthetic-equity","observation":{"ask":"10","quote_timestamp":"2026-09-17T11:59:59Z","signal_known_at":"2026-09-16T20:00:00Z","side":"buy","fractional_supported":true,"units":"1","fee_cents_per_unit":"1"},"gross_exit_cents":1050,"exit_fee_cents":1},
+    {"id":"prediction-fixture","desk":"prediction","instrument":"SYNTH-BTC-EVENT","group":"synthetic-crypto-risk","observation":{"price":"0.40","probability":"0.50","payout":"1","quote_timestamp":"2026-09-17T11:59:59Z","settlement_terms":"SYNTHETIC: pays $1 if fixture outcome is YES at fixture expiry, $0 otherwise.","category":"crypto_event","underlying":"BTC","instrument_type":"binary_event","fee_cents_per_contract":"1","contracts":10},"gross_exit_cents":0,"exit_fee_cents":0},
+    {"id":"options-fixture","desk":"options","instrument":"SYNTH-DEBIT-VERTICAL","group":"synthetic-equity","observation":{"long_ask":"0.20","short_bid":"0.10","quote_timestamp":"2026-09-17T11:59:59Z","multiplier":100,"fees_cents_per_contract":100,"contracts":1},"gross_exit_cents":900,"exit_fee_cents":100},
+    {"id":"crypto-fixture","desk":"crypto","instrument":"SYNTH-TOKEN","group":"synthetic-crypto-risk","observation":{"buy_price":"0.01","buy_size":400,"buy_quote_timestamp":"2026-09-17T11:59:58Z","exit_price":"0.009","exit_size":400,"exit_quote_timestamp":"2026-09-17T11:59:59Z","authority_passed":true,"sellability_passed":true,"owner_concentration_passed":true,"liquidity_passed":true,"fee_bps":100,"units":400},"gross_exit_cents":360,"exit_fee_cents":4},
+    {"id":"options-too-expensive","desk":"options","instrument":"SYNTH-EXPENSIVE-SPREAD","group":"synthetic-equity","observation":{"long_ask":"3.00","short_bid":"1.00","quote_timestamp":"2026-09-17T11:59:59Z","multiplier":100,"fees_cents_per_contract":100,"contracts":1}},
+    {"id":"crypto-unknown-sellability","desk":"crypto","instrument":"SYNTH-UNKNOWN-TOKEN","group":"synthetic-crypto-risk","observation":{"buy_price":"0.01","buy_size":400,"buy_quote_timestamp":"2026-09-17T11:59:58Z","exit_price":"0.009","exit_size":400,"exit_quote_timestamp":"2026-09-17T11:59:59Z","authority_passed":true,"sellability_passed":false,"owner_concentration_passed":true,"liquidity_passed":true,"fee_bps":100,"units":400}}
+  ]
+}

@@ -1,0 +1,43 @@
+# Separate source checkouts and the independently managed research workspace
+/sol-luna-codex-orchestrator/
+/tradingcodex/
+/investment-research/
+
+# Local runtime and credentials
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+/external-bots/
+
+/.local-secrets/
+
+# Private operational state is never part of a public source release.
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+*.log
+*.jsonl
+*.jsonl.gz
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+/tmp/
+/exports/
+/logs/
+/reports/
+/artifacts/
+/coordination/verification/
+/coordination/releases/
+/knowledge/repairs/Cloud/
+/knowledge/repairs/Runbooks/
+/knowledge/repairs/manifest.json
